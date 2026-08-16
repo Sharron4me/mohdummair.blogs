@@ -9,7 +9,9 @@ export function SiteFooter() {
         © {YEAR_SITE_STARTED} {site.author}
       </span>
       <span className="footer-links">
-        <a href={`${site.basePath}/rss.xml`}>RSS</a>
+        <a href={site.homepage} target="_blank" rel="noopener noreferrer">
+          CV
+        </a>
         {site.social.github ? (
           <a href={site.social.github} target="_blank" rel="noopener noreferrer">
             GitHub

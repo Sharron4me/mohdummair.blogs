@@ -28,23 +28,6 @@ export default function AboutPage() {
           Posts here are working notes rather than finished papers. If something looks wrong,
           I would like to know.
         </p>
-
-        <h2>Elsewhere</h2>
-        <ul>
-          <li>
-            <a href={`${site.basePath}/rss.xml`}>RSS feed</a>
-          </li>
-          {site.social.github ? (
-            <li>
-              <a href={site.social.github}>GitHub</a>
-            </li>
-          ) : null}
-          {site.social.email ? (
-            <li>
-              <a href={`mailto:${site.social.email}`}>Email</a>
-            </li>
-          ) : null}
-        </ul>
       </div>
     </>
   )

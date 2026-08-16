@@ -18,8 +18,10 @@ export const site = {
   origin,
   /** Path prefix for internal links (empty locally, "/<repo>" on GitHub Pages). */
   basePath,
-  /** Absolute site root, including basePath. Used for RSS and canonical URLs. */
+  /** Absolute site root, including basePath. Used for canonical URLs. */
   url: `${origin}${basePath}`,
+  /** Personal/CV site this blog belongs to. Linked from the footer and About page. */
+  homepage: 'https://sharron4me.github.io/',
   postsPerPage: 20,
   nav: [
     { label: 'Posts', href: '/' },
@@ -27,19 +29,19 @@ export const site = {
     { label: 'About', href: '/about' },
   ],
   social: {
-    github: '',
+    github: 'https://github.com/Sharron4me',
     x: '',
-    linkedin: '',
-    email: '',
+    linkedin: 'https://www.linkedin.com/in/mohammad-ummair',
+    email: 'mohdummair.iitb@gmail.com',
   },
 } as const
 
 /**
- * Build an absolute URL (origin + basePath + path) for feeds and metadata.
+ * Build an absolute URL (origin + basePath + path) for metadata.
  *
- * Mirrors `trailingSlash: true` from next.config.mjs so canonical URLs and feed
- * links match what the server actually serves — otherwise every hit takes a
- * redirect hop. Paths that name a file (rss.xml, sitemap.xml) are left alone.
+ * Mirrors `trailingSlash: true` from next.config.mjs so canonical URLs match
+ * what the server actually serves — otherwise every hit takes a redirect hop.
+ * Paths that name a file (sitemap.xml) are left alone.
  */
 export function absoluteUrl(path = '/'): string {
   const clean = path.startsWith('/') ? path : `/${path}`

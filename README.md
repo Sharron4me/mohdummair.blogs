@@ -36,7 +36,7 @@ Your first paragraph.
 | ------------- | -------- | ------------------------------------------------------------ |
 | `title`       | yes      | Build fails if missing                                       |
 | `date`        | yes      | `YYYY-MM-DD`; controls ordering                              |
-| `description` | no       | Index page blurb, `<meta>` description, RSS summary          |
+| `description` | no       | Index page blurb and `<meta>` description                    |
 | `tags`        | no       | Free-form; tag pages are generated automatically             |
 | `draft`       | no       | `true` shows it in dev only, never in a production build      |
 | `slug`        | no       | Overrides the filename-derived URL                           |
@@ -107,7 +107,6 @@ app/
   posts/[slug]/page.tsx article page
   tags/                 tag index and per-tag pages
   about/page.tsx        placeholder — rewrite this
-  rss.xml/route.ts      RSS 2.0 feed
   sitemap.ts robots.ts  generated at build time
   globals.css           all styling; design tokens at the top
 components/             header, nav, footer, post list, theme toggle
