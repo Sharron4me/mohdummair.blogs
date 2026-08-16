@@ -1,0 +1,84 @@
+---
+title: "KV Store: paying memory to avoid recompute"
+date: "2026-08-16"
+description: "Without a KV cache, every new token re-attends over the whole prefix. With one, you trade that compute for GPU memory — about 40 GB of it on Llama 3 70B at 128K context, and PagedAttention decides how much of that you waste."
+tags: ["inference", "long context"]
+draft: true
+---
+
+LLMs are auto-regressive. What does that mean? An LLM generates the t+1th token only after
+it has already generated the tth token, and to produce that t+1th token it has to consider
+all t tokens it has generated so far, because attention is computed over all of them.
+
+So let's say we did not have a KV store. In that case we would have to go over all the
+previous tokens and compute their attention again, over and over, every time we generate a
+new token. That process is very expensive — O(N²) work per step once we are N tokens in.
+
+What should we do then? We should use a KV store. Why? Because the past tokens do not
+change. Once a token has been processed, its K (key) and V (value) stay identical for the
+rest of the generation, so why not store them. For each new token we project Q (query), K
+and V, append the new K and V to the store, and attend against everything already in
+there. Q is never stored — it is only needed for the step it belongs to. That brings the
+per-step cost down to O(N).
+
+Sounds interesting? Yes it is. But it comes with a trade off.
+
+## Trade off
+
+The KV store is good, but it comes with the cost of GPU memory consumption. Let's take a
+look at the price we pay.
+
+```text
+KV cache size = 2 * b * s * l * h * d * p
+```
+
+- **2** — one factor each for the Key and Value tensors
+- **b** — batch size
+- **s** — sequence length (prompt + generated tokens)
+- **l** — number of transformer layers
+- **h** — number of KV heads. With grouped-query attention this is much smaller than the
+  attention head count, and that gap is the whole point of GQA
+- **d** — head dimension (`d_model` / number of attention heads)
+- **p** — precision in bytes (2 bytes for FP16 / BF16, 1 byte for FP8)
+
+So basically, put Llama 3 70B into it.[^llama3] That is 80 layers, 8 KV heads, head
+dimension 128, at BF16: 2 × 80 × 8 × 128 × 2 = 320 KiB per token. Which means one
+independent conversation needs about 2.5 GB of KV store at 8K context (a sequence of 8000
+tokens), and it grows to about 40 GB once the context grows to 128K.
+
+Yes, I know the amount of KV store required in GPU memory is greater than your laptop's
+entire RAM. But guess what? You don't have to allocate all 40 GB up front. In modern
+serving engines like vLLM we do something called PagedAttention.[^paged]
+
+## PagedAttention
+
+<figure>
+
+![Two requests sharing one pool of physical KV blocks. Request A's logical blocks 0, 1 and 2 map to physical blocks 7, 1 and 3; request B's logical blocks 0 and 1 map to physical blocks 5 and 2. Arrows cross, showing that logically adjacent blocks sit at unrelated physical addresses](/images/kv-store-pagedattention-two-requests.png)
+
+<figcaption>
+  Storing the KV cache of two requests at the same time in vLLM. Figure 7 from Kwon et al.,
+  arXiv:2309.06180, used under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+</figcaption>
+</figure>
+
+- We divide memory into small memory blocks/pages.
+- We allocate pages to a request as its number of tokens grows.
+- When a request is completed, we free its pages so they can be allocated to new requests.
+
+Notice the crossing arrows in the figure. Each request sees its blocks numbered 0, 1, 2 in
+order, but those blocks land wherever there is room in physical memory. Nothing has to be
+contiguous, so there is no large reservation to make up front and nothing left stranded
+between requests. The only memory a request wastes is the unfilled remainder of its last
+block. The paper measures what the alternative costs: in the systems it compares against,
+only 20.4% to 38.2% of KV cache memory actually holds token states. The rest is reserved
+for tokens that may never be generated, or fragmented.
+
+But do we still need the 40 GB? Yes. Paging changes *when* you pay and how little you
+waste, not the total — all 40 GB has to be resident in GPU memory, because the next token
+attends over all 128K previous tokens. What you avoid is reserving that 40 GB for a
+conversation that stops at 3K tokens.
+
+[^paged]: Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph E. Gonzalez, Hao Zhang, and Ion Stoica, ["Efficient Memory Management for Large Language Model Serving with PagedAttention"](https://arxiv.org/abs/2309.06180), SOSP 2023, arXiv:2309.06180. The 20.4%–38.2% utilization range is from §3 and Figure 2; the bound of one block of waste per request is from §4.3.
+
+[^llama3]: Llama Team, AI @ Meta, ["The Llama 3 Herd of Models"](https://arxiv.org/abs/2407.21783), arXiv:2407.21783, July 2024. The layer, KV head, and dimension counts come from Table 3, "Overview of the key hyperparameters of Llama 3", which lists the settings for the 8B, 70B, and 405B models.
