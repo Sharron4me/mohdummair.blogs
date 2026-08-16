@@ -2,7 +2,7 @@
 title: "KV Store: paying memory to avoid recompute"
 date: "2026-08-16"
 description: "Without a KV cache, every new token re-attends over the whole prefix. With one, you trade that compute for GPU memory — about 40 GB of it on Llama 3 70B at 128K context, and PagedAttention decides how much of that you waste."
-tags: ["inference", "long context"]
+tags: ["inference", "long context", "ai", "software engineering"]
 draft: true
 ---
 
@@ -74,7 +74,7 @@ block. The paper measures what the alternative costs: in the systems it compares
 only 20.4% to 38.2% of KV cache memory actually holds token states. The rest is reserved
 for tokens that may never be generated, or fragmented.
 
-But do we still need the 40 GB? Yes. Paging changes *when* you pay and how little you
+But do we still need the 40 GB? Yes. Paging changes _when_ you pay and how little you
 waste, not the total — all 40 GB has to be resident in GPU memory, because the next token
 attends over all 128K previous tokens. What you avoid is reserving that 40 GB for a
 conversation that stops at 3K tokens.
