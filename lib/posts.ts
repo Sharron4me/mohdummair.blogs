@@ -73,19 +73,16 @@ function parseFile(fileName: string): Post {
 }
 
 /**
- * All posts, newest first. Drafts are included in `next dev` so you can preview
- * them, and excluded from production builds.
+ * All posts, newest first. Drafts are included in every build and render with a
+ * "Draft" badge, so `draft: true` marks a post as unfinished rather than hiding it.
  */
 export function getAllPosts(): Post[] {
   if (!fs.existsSync(POSTS_DIR)) return []
-
-  const showDrafts = process.env.NODE_ENV === 'development'
 
   return fs
     .readdirSync(POSTS_DIR)
     .filter((f) => /\.mdx?$/.test(f) && !f.startsWith('.'))
     .map(parseFile)
-    .filter((post) => showDrafts || !post.draft)
     .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : a.title.localeCompare(b.title)))
 }
 

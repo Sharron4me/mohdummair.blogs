@@ -38,14 +38,15 @@ Your first paragraph.
 | `date`        | yes      | `YYYY-MM-DD`; controls ordering                              |
 | `description` | no       | Index page blurb and `<meta>` description                    |
 | `tags`        | no       | Free-form; tag pages are generated automatically             |
-| `draft`       | no       | `true` shows it in dev only, never in a production build      |
+| `draft`       | no       | `true` adds a Draft badge; the post still publishes         |
 | `slug`        | no       | Overrides the filename-derived URL                           |
 
 Filename becomes the URL: `posts/foo-bar.mdx` → `/posts/foo-bar`.
 
 `posts/writing-reference.mdx` documents every supported formatting feature — code blocks
-with titles and line highlighting, tables, footnotes, figures. Delete it when you no
-longer need it, along with `posts/unfinished-draft.mdx`.
+with titles and line highlighting, tables, footnotes, figures. It and
+`posts/unfinished-draft.mdx` are gitignored, so they stay on disk as a local reference and
+never reach the deployed site. Delete them when you no longer need them.
 
 ## Before you publish
 
@@ -91,7 +92,7 @@ npm start            # serves ./out at localhost:3000
 ```
 
 `npm run build` renders the site exactly as CI does, minus the base path. Worth running
-before a push since drafts are stripped and missing frontmatter fails the build here.
+before a push since missing frontmatter fails the build here.
 
 `npm run build` also type-checks and fails on TS errors, which is why CI has no separate
 typecheck step. There is a `npm run typecheck` script for faster iteration, but it needs

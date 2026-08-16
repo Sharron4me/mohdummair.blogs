@@ -5,6 +5,8 @@ import { absoluteUrl } from '@/lib/site'
 export const dynamic = 'force-static'
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  // Drafts render on the site but stay out of the sitemap — visible to anyone who
+  // follows a link, not advertised to crawlers while they are still unfinished.
   const posts = getAllPosts().filter((post) => !post.draft)
 
   return [
