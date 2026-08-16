@@ -1,0 +1,115 @@
+---
+title: 'AI Slop'
+date: '2026-08-16'
+description: 'Coding assistants feel effortless. The evidence says they make us write more code and work slower, and the dependency that builds only benefits one party.'
+tags: ['ai', 'software engineering', 'opinion']
+draft: false
+---
+
+The problem we are facing is the long-term effect of AI usage in companies. Right now it
+all seems nice and easy. Writing a new function is done in seconds. Making a new app takes
+a few hours. Getting code summaries takes no time at all. What we do not understand is
+what the long-term impact of using these tools actually is.
+
+## Problems of using AI
+
+For a simple query — write a function to test if the age of a user is at least 23 — we get
+the following output:
+
+```python title="What the assistant produced"
+MINIMUM_AGE = 23
+
+def is_at_least_minimum_age(age):
+    """Return True if age is at least MINIMUM_AGE (23).
+
+    Raises TypeError if age is not a number, ValueError if age is negative.
+    """
+    if isinstance(age, bool) or not isinstance(age, (int, float)):
+        raise TypeError(f"age must be a number, got {type(age).__name__}")
+    if age < 0:
+        raise ValueError(f"age must be non-negative, got {age}")
+    return age >= MINIMUM_AGE
+```
+
+It is pretty easy to write a simplified, optimized solution for this problem:
+
+```python title="Written by hand"
+def is_at_least_minimum_age(age):
+    """Check if minimum age 23
+    """
+    return age >= 23
+```
+
+So here it is pretty clear that we can save a lot of lines of code by using logic instead
+of using AI.
+
+## More code means more tokens
+
+Across 90 problems solved both by Microsoft Copilot and by the top-voted human solutions
+on LeetCode, the AI version had a higher average line count in around 60% of the pairs:
+53 of the 90, against 30 where the human version was longer and seven ties.[^loc]
+
+Now let's talk about debugging with that much extra context. As the number of lines grows,
+developers usually prefer using AI to debug them, and that consumes tokens. Keeping in
+mind that the number of tokens used is directly proportional to the cost companies incur
+as their AI bill, if AI continues writing long code it is actually helping AI companies
+charge you more.
+
+This might seem like just a coincidence. Let's take a deeper dive into it.
+
+## Developers are slower, not faster
+
+Developers spend more time writing code with AI than they do writing it
+themselves.[^metr] When using AI, developers were expected to be faster. The numbers
+suggest the opposite: experienced developers were 19% slower when using AI.
+
+<figure>
+
+![Empirical cumulative distribution functions of implementation times, showing the AI-disallowed group (N=110) and the AI-allowed group (N=136); the curves overlap below one hour and the AI-allowed curve shifts right above it](/images/ai-slop-implementation-time-ecdf.png)
+
+<figcaption>
+  Empirical cumulative distribution functions of observed implementation times. Percentile
+  ordering is calculated separately for each treatment group. Figure 5 from Becker et al.,
+  arXiv:2507.09089, used under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+</figcaption>
+</figure>
+
+The two groups track each other closely on tasks under an hour and separate above that, so
+the slowdown is concentrated in the longer tasks.
+
+The study covered 246 tasks across 16 experienced developers, working in mature
+repositories they already knew well. The part worth sitting with is the gap between what
+the developers felt and what the clock said. Beforehand they predicted AI would make them
+24% faster. Afterwards, having actually been 19% slower, they still believed it had made
+them 20% faster.
+
+## So why are we using it so much?
+
+Let's take a step back and talk about logic. If developers are slower, why are we using AI
+so much? The answer is that it makes our job effortless. We do not think about debugging
+the bugs later, we do not think about how long it takes, and we do not think about how
+much weaker we get as developers each time we use it. Why? Because we love the illusion of
+seeing code written faster, even though the code is inefficient and will be a pain to
+review.
+
+## Who is benefiting from it
+
+The ones benefiting from it are AI companies, and AI companies alone. How? As we get more
+and more dependent on our coding assistants, we lose the ability to code ourselves and to
+debug issues ourselves, which means we become more and more dependent on those coding
+assistants. Once we lose our ability to code, the only option is to pay whatever price
+these AI companies ask for the subscription. Which means the more we use coding
+assistants, the better it is for them.
+
+## What can we do
+
+- Avoid using coding assistants for long code changes. **Do it yourself.**
+- If the change is large, divide the task into smaller subtasks and define how each
+  function should look before handing anything to the assistant.
+- **Review code thoroughly.** Do not blindly push code.
+- **Practice coding yourself.** Go to competitive coding websites and try solving some
+  problems on your own. Do not rely on an AI assistant for that.
+
+[^loc]: Abhi Patel, Kazi Zakia Sultana, and Bharath K. Samanthula, ["A Comparative Analysis between AI Generated Code and Human Written Code: A Preliminary Study"](https://ieeexplore.ieee.org/document/10825958), 2024 IEEE International Conference on Big Data (BigData), doi:10.1109/BigData62323.2024.10825958. The line-count figures come from the paper's `AvgCountLineCode` comparison across 90 Java solution pairs.
+
+[^metr]: Joel Becker, Nate Rush, Elizabeth Barnes, and David Rein, ["Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity"](https://arxiv.org/abs/2507.09089), arXiv:2507.09089, July 2025. The 19% figure is the study's headline result; the forecast numbers come from the same paper.

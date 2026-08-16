@@ -1,0 +1,119 @@
+---
+title: 'Writing reference'
+date: '2026-08-14'
+description: 'Every formatting feature this blog supports, in one page. Delete this post once you no longer need it.'
+tags: ['meta']
+draft: true
+---
+
+This post exists to show what the styling looks like and to remind you of the syntax.
+It is safe to delete — nothing else links to it.
+
+## Frontmatter
+
+Every post starts with a YAML block. `title` and `date` are required; the build fails
+loudly if either is missing.
+
+```yaml
+---
+title: 'Why the KV cache is the whole problem'
+date: '2026-08-20'
+description: 'One or two sentences. Shows on the index page and in search results.'
+tags: ['inference', 'long context']
+draft: false
+---
+```
+
+Set `draft: true` while a post is in progress. Drafts show up in `npm run dev` with a
+badge and are stripped out of production builds, so you can commit unfinished work
+without publishing it.
+
+## Text
+
+Regular paragraphs, **bold**, *italic*, `inline code`, and [links](/about). Footnotes
+work too.[^1]
+
+[^1]: Like this one. They collect at the bottom of the post.
+
+> Blockquotes are for quoting other people, and for the occasional aside that would
+> otherwise interrupt the paragraph.
+
+Lists, ordered and not:
+
+1. First
+2. Second
+   - Nested
+   - Also nested
+
+## Code
+
+Fenced blocks are highlighted at build time by Shiki, so no JavaScript ships to the
+reader. Add a language for highlighting, and optionally a title:
+
+````text
+```python title="attention.py"
+```
+````
+
+Which renders as:
+
+```python title="attention.py"
+def kv_bytes(layers, heads, head_dim, seq_len, dtype_bytes=2):
+    """Bytes held by the KV cache for a single sequence."""
+    per_token = 2 * layers * heads * head_dim * dtype_bytes
+    return per_token * seq_len
+
+
+# Llama-style 8B at 128k context
+print(kv_bytes(32, 8, 128, 128_000) / 1e9, "GB")
+```
+
+You can highlight specific lines by putting a range in braces after the language, and
+highlight words by wrapping them in slashes. Add `showLineNumbers` for numbering:
+
+```c {4} /stride/ showLineNumbers
+// Line 4 is highlighted, and every "stride" is marked.
+for (int i = 0; i < n; i += stride) {
+    float acc = 0.0f;
+    acc += a[i] * b[i];   // highlighted
+    out[i] = acc;
+}
+```
+
+Inline `code` picks up the monospace stack without a background in dark mode surprises.
+
+## Tables
+
+| Context length | KV cache (8B, fp16) | Fits in 36 GB? |
+| -------------- | ------------------: | -------------- |
+| 8k             |              0.5 GB | yes            |
+| 32k            |              2.1 GB | yes            |
+| 128k           |              8.6 GB | yes, barely    |
+| 512k           |             34.4 GB | no             |
+
+Numbers above are illustrative — recompute before citing them anywhere.
+
+## Images
+
+Drop files in `public/` and reference them from the site root. They are lazy-loaded
+automatically.
+
+```md
+![Throughput versus batch size](/images/throughput.png)
+```
+
+Wrap in a figure when you want a caption:
+
+```html
+<figure>
+  <img src="/images/throughput.png" alt="Throughput versus batch size" />
+  <figcaption>Throughput saturates once memory bandwidth is the limit.</figcaption>
+</figure>
+```
+
+## Headings and links
+
+Every heading gets an `id` and becomes a clickable anchor on hover, so you can link
+someone straight to a section. Internal links written as `/posts/some-slug` route
+through Next's router and pick up the base path automatically — important because the
+site is served from a subdirectory on GitHub Pages.
